@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>AirportDutyFree by Mirziyod</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* --- Общий стиль --- */
+    :root{
+      --blue-700:#01579b;
+      --blue-500:#0288d1;
+      --accent:#ffca28;
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      margin: 0;
+      color: #023e8a;
+      /* реальное чистое небо */
+      background: url("https://picsum.photos/1600/900?seed=sky-blue-01") no-repeat center center fixed;
+      background-size: cover;
+    }
+    /* полупрозрачный контейнер страницы */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(4px);
+    }
+
+    header {
+      background: rgba(1,70,120,0.85);
+      color: white;
+      text-align: center;
+      padding: 22px 16px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: .6px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    }
+
+    nav {
+      background: rgba(2,119,189,0.85);
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      padding: 12px 10px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      transition: color .2s, transform .12s;
+    }
+    nav a:hover { color: var(--accent); transform: translateY(-2px); }
+
+    main {
+      padding: 26px 14px;
+      flex: 1;
+      display: block;
+    }
+
+    section {
+      margin: 18px auto;
+      max-width: 1100px;
+      background: rgba(255,255,255,0.85);
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      color: var(--blue-700);
+      margin: 6px 0 18px 0;
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.7);
+      border: 2px solid rgba(2,119,189,0.12);
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      justify-content: center;
+    }
+
+    .card {
+      width: 240px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+      overflow: hidden;
+      transition: transform .14s ease, box-shadow .14s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 12px 22px rgba(0,0,0,0.18); }
+
+    .card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card .body {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card h3 { margin: 0; font-size: 16px; color: #073b64; }
+    .card p.desc { margin: 0; font-size: 13px; color: #3b5876; min-height: 40px; }
+    .card .meta { display:flex; justify-content:space-between; align-items:center; margin-top:auto; gap:8px; }
+
+    .price { color: var(--blue-500); font-weight:700; }
+
+    .buy-btn {
+      background: var(--blue-500);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight:700;
+    }
+    .buy-btn:hover { background: var(--blue-700); }
+
+    /* Модалка */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: 380px;
+      max-width: 96%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      overflow: hidden;
+      animation: modalIn .22s ease;
+    }
+    @keyframes modalIn { from { transform: translateY(-12px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+    .modal-top { display:flex; gap:12px; align-items:center; padding:12px; border-bottom:1px solid #eee; }
+    .modal-top img { width:96px; height:72px; object-fit:cover; border-radius:8px; }
+    .modal-top .title { font-weight:800; color:#073b64; font-size:16px; }
+
+    .modal-body { padding:12px; }
+    .modal-body p { margin:8px 0; color:#27415a; }
+    .modal-body input, .modal-body textarea {
+      width:100%; padding:8px; margin-top:6px; border-radius:8px; border:1px solid #cfdbe8; box-sizing:border-box;
+    }
+    .modal-actions { display:flex; gap:8px; justify-content:flex-end; padding:12px; border-top:1px solid #eee; }
+    .btn-secondary { background:#f1f5f9; border:1px solid #e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; }
+    .btn-primary { background:var(--blue-500); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; }
+
+    footer {
+      background: rgba(1,70,120,0.9);
+      color: white;
+      text-align: center;
+      padding: 12px 8px;
+      font-size: 14px;
+    }
+
+    /* Адаптив */
+    @media (max-width:640px) {
+      .grid { gap:12px; }
+      .card { width: calc(50% - 14px); }
+    }
+    @media (max-width:420px) {
+      .card { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>🛫 AirportDutyFree by Mirziyod</header>
+    <nav>
+      <a href="#food">🍽️ Еда</a>
+      <a href="#toys">✈️ Товары и игрушки</a>
+      <a href="#contact">📞 Контакты</a>
+    </nav>
+
+    <main>
+      <!-- Еда -->
+      <section id="food">
+        <h2>🍽️ Еда на борту</h2>
+        <div id="foodGrid" class="grid"></div>
+      </section>
+
+      <!-- Игрушки и товары -->
+      <section id="toys">
+        <h2>✈️ Товары и игрушки</h2>
+        <div id="toysGrid" class="grid"></div>
+      </section>
+
+      <!-- Контакты -->
+      <section id="contact">
+        <h2>📞 Контакты</h2>
+        <p><b>Email:</b> airportdutyfree@gmail.com</p>
+        <p>Доставка по всему Узбекистану ✈️</p>
+      </section>
+    </main>
+
+    <footer>© 2025 AirportDutyFree by Mirziyod</footer>
+  </div>
+
+  <!-- Модалка заказа -->
+  <div id="modal" class="modal" role="dialog" aria-hidden="true">
+    <div class="modal-card" role="document">
+      <div class="modal-top">
+        <img id="modalImg" src="" alt="">
+        <div>
+          <div id="modalTitle" class="title">Название товара</div>
+          <div id="modalPrice" style="color:var(--blue-500); font-weight:800; margin-top:6px;">0 сум</div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <p id="modalDesc">Описание товара</p>
+        <label>Ваше имя</label>
+        <input id="buyerName" type="text" placeholder="Например: Мирзиёд">
+        <label>Адрес доставки</label>
+        <input id="buyerAddr" type="text" placeholder="Улица, город, индекс">
+        <label>Комментарий (опционально)</label>
+        <textarea id="buyerNote" rows="3" placeholder="Примечания для доставки"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">Отмена</button>
+        <button class="btn-primary" onclick="submitOrder()">Оформить заказ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Данные товаров — использую picsum.photos с разными seed, чтобы картинки всегда загружались
+    const foodItems = [
+      {name:"Бургер с котлетой и сыром", price:"35 000 сум", desc:"Сочный бургер с котлетой и расплавленным сыром.", img:"https://picsum.photos/seed/burger/600/400"},
+      {name:"Картошка фри", price:"15 000 сум", desc:"Хрустящая картошка фри, идеально солённая.", img:"https://picsum.photos/seed/fries/600/400"},
+      {name:"Шаурма с курицей и говядиной", price:"40 000 сум", desc:"Большая шаурма на выбор: курица или говядина.", img:"https://picsum.photos/seed/shawarma/600/400"},
+      {name:"Плов с хлебом и мясом", price:"30 000 сум", desc:"Традиционный плов с сочным мясом и свежим хлебом.", img:"https://picsum.photos/seed/plov/600/400"},
+      {name:"Бутерброд с колбасой и сыром", price:"20 000 сум", desc:"Хрустящий бутерброд с колбасой и сыром.", img:"https://picsum.photos/seed/sandwich/600/400"},
+      {name:"Кока кола в алюминиевой банке", price:"15 000 сум", desc:"Освежающая Coca-Cola в алюминиевой банке 330 мл.", img:"https://picsum.photos/seed/coke/600/400"},
+      {name:"Чёрный/зелёный чай", price:"10 000 сум", desc:"Выберите чёрный или зелёный чай — тёплый напиток.", img:"https://picsum.photos/seed/tea/600/400"},
+      {name:"Сан Себастьян чизкейк", price:"40 000 сум", desc:"Популярный кремовый чизкейк Сан-Себастьян.", img:"https://picsum.photos/seed/cheesecake/600/400"},
+      {name:"Пирожное Прага", price:"30 000 сум", desc:"Нежное пирожное «Прага» с шоколадом.", img:"https://picsum.photos/seed/praga/600/400"}
+    ];
+
+    const toyItems = [
+      {name:"Ремувки", price:"20 000 сум", desc:"Практичные ремувки — аксессуар в дорогу.", img:"https://picsum.photos/seed/remuvki/600/400"},
+      {name:"Kids Plane от Emirates", price:"120 000 сум", desc:"Детская лимитированная серия от Emirates.", img:"https://picsum.photos/seed/kidsplane/600/400"},
+      {name:"Мягкая мишка от Air Arabia", price:"140 000 сум", desc:"Мягкая игрушка — лимитированная серия.", img:"https://picsum.photos/seed/teddy/600/400"},
+      {name:"Модель самолёта Emirates A380", price:"250 000 сум", desc:"Коллекционная модель Emirates A380 (1:200).", img:"https://picsum.photos/seed/emirates-a380/600/400"},
+      {name:"Модель самолёта Uzbekistan B787", price:"230 000 сум", desc:"Коллекционная модель Uzbekistan B787.", img:"https://picsum.photos/seed/uzb-b787/600/400"},
+      {name:"Модель самолёта Saudia B747", price:"250 000 сум", desc:"Коллекционная модель Saudia B747.", img:"https://picsum.photos/seed/saudia-b747/600/400"},
+      {name:"Модель самолёта Uzbekistan B767", price:"200 000 сум", desc:"Коллекционная модель Uzbekistan B767.", img:"https://picsum.photos/seed/uzb-b767/600/400"}
+    ];
+
+    // Функция, которая создаёт карточку товара в DOM
+    function createCard(item) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${item.img}" alt="${item.name}">
+        <div class="body">
+          <h3>${item.name}</h3>
+          <p class="desc">${item.desc}</p>
+          <div class="meta">
+            <div class="price">${item.price}</div>
+            <button class="buy-btn">Купить</button>
+          </div>
+        </div>
+      `;
+      // кнопка открытия модалки
+      card.querySelector('.buy-btn').addEventListener('click', () => openModalFor(item));
+      return card;
+    }
+
+    // Отрисовка карточек
+    const foodGrid = document.getElementById('foodGrid');
+    const toysGrid = document.getElementById('toysGrid');
+
+    foodItems.forEach(it => foodGrid.appendChild(createCard(it)));
+    toyItems.forEach(it => toysGrid.appendChild(createCard(it)));
+
+    // Модал
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalPrice = document.getElementById('modalPrice');
+    const modalDesc = document.getElementById('modalDesc');
+
+    function openModalFor(item) {
+      modalImg.src = item.img;
+      modalImg.alt = item.name;
+      modalTitle.textContent = item.name;
+      modalPrice.textContent = item.price;
+      modalDesc.textContent = item.desc;
+      document.getElementById('buyerName').value = '';
+      document.getElementById('buyerAddr').value = '';
+      document.getElementById('buyerNote').value = '';
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+    }
+
+    function submitOrder(){
+      const name = document.getElementById('buyerName').value.trim();
+      const addr = document.getElementById('buyerAddr').value.trim();
+      if(!name || !addr){
+        alert('Пожалуйста, укажите имя и адрес доставки.');
+        return;
+      }
+      // В реальном проекте здесь бы отправляли форму на сервер.
+      alert(`Спасибо, ${name}! Заказ "${modalTitle.textContent}" на сумму ${modalPrice.textContent} принят. Мы свяжемся по адресу: ${addr}`);
+      closeModal();
+    }
+
+    // Закрытие кликом вне модалки или по Esc
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal) closeModal();
+    });
+    window.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') closeModal();
+    });
+
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заголовок страницы</title>
+</head>
+<body>
+    
+</body>
+</html>
